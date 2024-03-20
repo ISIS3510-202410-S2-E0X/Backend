@@ -1,13 +1,24 @@
+from contextlib import asynccontextmanager
 import random
-# import pytz
+import pytz
 from fastapi import FastAPI, HTTPException
-# from apscheduler.schedulers.asyncio import AsyncIOScheduler
-# from apscheduler.triggers.cron import CronTrigger
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
 import firebase_admin
 from firebase_admin import credentials, firestore
 
+jst = pytz.timezone('America/Bogota')
+scheduler = AsyncIOScheduler()
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    trigger = CronTrigger(hour='*/2', timezone=jst)
+    scheduler.add_job(trigger_aggregated_stats_update, trigger)
+    scheduler.start()
+    yield # here, the app turns on and starts to receive requests
+    scheduler.shutdown()
+
+app = FastAPI(lifespan=lifespan)
 
 cred = credentials.Certificate("foodbook-back-firebase-adminsdk-to94a-90fe879afa.json")
 firebase_admin.initialize_app(cred)
@@ -20,6 +31,7 @@ db = firestore.client()
 
 @app.get("/recommendation/{uid}")
 async def get_recommendation_for_user(uid: str):
+    print('GETTING RECOMMENDATION')
     # get all reviews and categories
     reviews = await get_all_reviews()
     categories = await get_all_categories()
@@ -48,15 +60,11 @@ async def get_recommendation_for_user(uid: str):
 # Trigger updates for aggregated stats
 # ----------------------------
 
-# jst = pytz.timezone('America/Bogota')
-# scheduler = AsyncIOScheduler()
-
-@app.get("/trigger_update")
+# @app.get("/trigger_update")
 async def trigger_aggregated_stats_update():
+    print('TRIGGERING UPDATE')
     # 1. get all spots
     spots = await get_all_documents_from_collection('spots')
-    # spots = await get_all_spots()
-    # print((spots[0]['reviewData']['userReviews'][0].get()).to_dict())
 
     # 2. get all spot reviews
     for spot_id, spot in spots.items():
@@ -69,7 +77,6 @@ async def trigger_aggregated_stats_update():
         await update_spot_stats_firebase(avg_stats, spot_id)
 
     return {}
-
 
 
 # ----------------------------
@@ -130,9 +137,7 @@ async def get_spot_reviews(review_references: list):
     # references look like this: <google.cloud.firestore_v1.document.DocumentReference object at 0x106f6b490>
     reviews = []
     for review in review_references:
-        print(review)
         each_review = review.get()
-        print(each_review.to_dict() if each_review.exists else 'no document found')
         reviews.append(each_review.to_dict())
     
     return reviews
@@ -147,7 +152,6 @@ async def update_spot_stats(spot: list, spot_reviews: list):
     }
     
     total_reviews = len(spot_reviews)
-    print(f'SPOT REVIEWS: {spot_reviews}')
     try:
         for review in spot_reviews:
             avg_stats['waitTime'] += review['ratings']['waitTime'] / total_reviews

@@ -34,7 +34,7 @@ async def get_recommendation_for_user(uid: str):
         selected_category = last_category_from_review(user_reviews[0], categories)
 
     # then return all restaurants with that category
-    for_you_spots = await restaurants_with_category("healthy")
+    for_you_spots = await restaurants_with_category(selected_category)
 
     return {"spots": for_you_spots, "category": selected_category, "user": uid}
 

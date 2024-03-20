@@ -54,20 +54,19 @@ async def get_recommendation_for_user(uid: str):
 @app.get("/trigger_update")
 async def trigger_aggregated_stats_update():
     # 1. get all spots
-    spots = await get_all_spots()
-    print(spots)
+    spots = await get_all_documents_from_collection('spots')
+    # spots = await get_all_spots()
+    # print((spots[0]['reviewData']['userReviews'][0].get()).to_dict())
 
     # 2. get all spot reviews
-    for spot in spots:
-        spot_reviews = await get_spot_reviews(spot['userReviews'])
-        
+    for spot_id, spot in spots.items():
+        spot_reviews = await get_spot_reviews(spot['reviewData']['userReviews'])
         
         # 3. calculate new stats
-        # update_spot_stats(spot, spot_reviews)
+        avg_stats = await update_spot_stats(spot['reviewData']['stats'], spot_reviews)
 
         # 4. update stats in spot document
-        # update_spot_stats(spot, spot_reviews)
-        pass
+        await update_spot_stats_firebase(avg_stats, spot_id)
 
     return {}
 
@@ -100,15 +99,22 @@ async def get_all_categories():
     return categories_list
 
 
-async def get_all_spots():
-    collection_ref = db.collection('spots')
-    # get all spots
-    spots = collection_ref.get()
-    spots_list = []
-    for spot in spots:
-        spots_list.append(spot.to_dict())
-    
-    return spots_list
+async def get_all_documents_from_collection(collection_name: str):
+    collection_ref = db.collection(collection_name)
+    docs = collection_ref.stream()
+    return_documents = {}
+    for doc in docs:
+        return_documents[doc.id] = doc.to_dict()
+        
+
+    return return_documents
+
+
+async def update_spot_stats_firebase(avg_stats: dict, spot_id: str):
+    spot_ref = db.collection('spots').document(spot_id)
+    spot_ref.update({
+        'reviewData.stats': avg_stats
+    })
 
 
 def last_category_from_review(review: dict, categories: list):
@@ -121,16 +127,39 @@ def last_category_from_review(review: dict, categories: list):
 
 
 async def get_spot_reviews(review_references: list):
-    # references look like this:  <google.cloud.firestore_v1.document.DocumentReference object at 0x106f6b490>
+    # references look like this: <google.cloud.firestore_v1.document.DocumentReference object at 0x106f6b490>
     reviews = []
-    for review_ref in review_references:
-        review = db.document(review_ref).get()
-        reviews.append(review.to_dict())
+    for review in review_references:
+        print(review)
+        each_review = review.get()
+        print(each_review.to_dict() if each_review.exists else 'no document found')
+        reviews.append(each_review.to_dict())
     
     return reviews
     
-
-
+    
+async def update_spot_stats(spot: list, spot_reviews: list):
+    avg_stats = {
+        'waitTime': 0,
+        'foodQuality': 0,
+        'cleanliness': 0,
+        'service': 0,
+    }
+    
+    total_reviews = len(spot_reviews)
+    print(f'SPOT REVIEWS: {spot_reviews}')
+    try:
+        for review in spot_reviews:
+            avg_stats['waitTime'] += review['ratings']['waitTime'] / total_reviews
+            avg_stats['foodQuality'] += review['ratings']['foodQuality'] / total_reviews
+            avg_stats['cleanliness'] += review['ratings']['cleanliness'] / total_reviews
+            avg_stats['service'] += review['ratings']['service'] / total_reviews
+    except Exception as e:
+        pass
+    
+    return avg_stats   
+        
+    
 async def restaurants_with_category(selected_category: str):
     spots_ref = db.collection('spots')
     query = spots_ref.where('categories', 'array_contains', selected_category)

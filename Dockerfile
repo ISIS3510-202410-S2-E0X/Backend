@@ -8,7 +8,7 @@ WORKDIR /app
 COPY foodbook-back-firebase-adminsdk-to94a-90fe879afa.json .
 
 # Copiar los archivos de la aplicación FastAPI al directorio de trabajo
-COPY ./app /app
+COPY main.py .
 
 # Instalar las dependencias necesarias
 COPY requirements.txt .

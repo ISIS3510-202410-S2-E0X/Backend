@@ -35,23 +35,29 @@ async def get_recommendation_for_user(uid: str):
     # get all reviews and categories
     reviews = await get_all_reviews()
     categories = await get_all_categories()
-    
+    print(categories)
     # search last user review
     user_reviews = []
-    for review in reviews:
-        try:
-            if review['user'] == uid:
-                user_reviews.append(review)
-        except KeyError:
-            pass
+    if reviews:
+        for review in reviews:
+            try:
+                if review['user'] == uid:
+                    user_reviews.append(review)
+            except KeyError:
+                pass
         
-    if user_reviews == []:
-        selected_category = categories[random.randint(0, len(categories))]['name']
-    else:
-        selected_category = last_category_from_review(user_reviews[0], categories)
+    if categories:
+        if user_reviews == []:
+            selected_category = await categories[random.randint(0, len(categories))]['name']
+        else:
+            selected_category = last_category_from_review(user_reviews[0], categories)
 
     # then return all restaurants with that category
-    for_you_spots = await restaurants_with_category(selected_category)
+    for_you_spots = []
+    while (for_you_spots == []):
+        if categories:
+            selected_category = categories[random.randint(0, len(categories))]['name']
+            for_you_spots = await restaurants_with_category(selected_category)
 
     return {"spots": for_you_spots, "category": selected_category, "user": uid}
 

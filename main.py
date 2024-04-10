@@ -10,6 +10,7 @@ from firebase_admin import credentials, firestore
 jst = pytz.timezone('America/Bogota')
 scheduler = AsyncIOScheduler()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     trigger = CronTrigger(hour='*/2', timezone=jst)
@@ -31,28 +32,25 @@ db = firestore.client()
 
 @app.get("/recommendation/{uid}")
 async def get_recommendation_for_user(uid: str):
-    print('GETTING RECOMMENDATION')
-    # get all reviews and categories
+    print('INFO: GETTING RECOMMENDATION')
     reviews = await get_all_reviews()
     categories = await get_all_categories()
-    print(categories)
-    # search last user review
+
     user_reviews = []
     if reviews:
         for review in reviews:
             try:
-                if review['user'] == uid:
+                if review['user']['id'] == uid:
                     user_reviews.append(review)
             except KeyError:
                 pass
-        
+    
     if categories:
         if user_reviews == []:
-            selected_category = await categories[random.randint(0, len(categories))]['name']
+            raise HTTPException(status_code=404, detail="User has no reviews")
         else:
             selected_category = last_category_from_review(user_reviews[0], categories)
 
-    # then return all restaurants with that category
     for_you_spots = []
     while (for_you_spots == []):
         if categories:
@@ -68,7 +66,7 @@ async def get_recommendation_for_user(uid: str):
 
 # @app.get("/trigger_update")
 async def trigger_aggregated_stats_update():
-    print('TRIGGERING UPDATE')
+    print('INFO: TRIGGERING UPDATE')
     # 1. get all spots
     spots = await get_all_documents_from_collection('spots')
 

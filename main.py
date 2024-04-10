@@ -34,7 +34,6 @@ db = firestore.client()
 async def get_recommendation_for_user(uid: str):
     print('INFO: GETTING RECOMMENDATION')
     reviews = await get_all_reviews()
-    categories = await get_all_categories()
 
     user_reviews = []
     if reviews:
@@ -45,17 +44,18 @@ async def get_recommendation_for_user(uid: str):
             except KeyError:
                 pass
     
-    if categories:
-        if user_reviews == []:
-            raise HTTPException(status_code=404, detail="User has no reviews")
-        else:
-            selected_category = last_category_from_review(user_reviews[0], categories)
+    categories = await get_all_categories_by_user(uid)
+    print(user_reviews)
+
+    
+    if user_reviews == []:
+        raise HTTPException(status_code=404, detail="User has no reviews")
+    else:
+        selected_category = last_category_from_review(user_reviews[0], categories)
 
     for_you_spots = []
     while (for_you_spots == []):
-        if categories:
-            selected_category = categories[random.randint(0, len(categories))]['name']
-            for_you_spots = await restaurants_with_category(selected_category)
+        for_you_spots = await restaurants_with_category(selected_category)
 
     return {"spots": for_you_spots, "category": selected_category, "user": uid}
 
@@ -109,6 +109,17 @@ async def get_all_categories():
     
     return categories_list
 
+async def get_all_categories_by_user(user_id: str):
+    collection_ref = db.collection('reviews')
+    # get all categories
+    reviews = collection_ref.where('user.id', '==', user_id).get()
+    categories_list = []
+    for review in reviews:
+        # the categories are stored inside the review in the field 'selectedCategories'
+        review_data = review.to_dict()
+        categories_list = review_data['selectedCategories']
+
+    return categories_list
 
 async def get_all_documents_from_collection(collection_name: str):
     collection_ref = db.collection(collection_name)

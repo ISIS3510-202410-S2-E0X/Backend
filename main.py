@@ -10,6 +10,7 @@ from firebase_admin import credentials, firestore
 jst = pytz.timezone('America/Bogota')
 scheduler = AsyncIOScheduler()
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     trigger = CronTrigger(hour='*/2', timezone=jst)
@@ -31,33 +32,30 @@ db = firestore.client()
 
 @app.get("/recommendation/{uid}")
 async def get_recommendation_for_user(uid: str):
-    print('GETTING RECOMMENDATION')
-    # get all reviews and categories
+    print('INFO: GETTING RECOMMENDATION')
     reviews = await get_all_reviews()
-    categories = await get_all_categories()
-    print(categories)
-    # search last user review
+
     user_reviews = []
     if reviews:
         for review in reviews:
             try:
-                if review['user'] == uid:
+                if review['user']['id'] == uid:
                     user_reviews.append(review)
             except KeyError:
                 pass
-        
-    if categories:
-        if user_reviews == []:
-            selected_category = await categories[random.randint(0, len(categories))]['name']
-        else:
-            selected_category = last_category_from_review(user_reviews[0], categories)
+    
+    categories = await get_all_categories_by_user(uid)
+    print(user_reviews)
 
-    # then return all restaurants with that category
+    
+    if user_reviews == []:
+        raise HTTPException(status_code=404, detail="User has no reviews")
+    else:
+        selected_category = last_category_from_review(user_reviews[0], categories)
+
     for_you_spots = []
     while (for_you_spots == []):
-        if categories:
-            selected_category = categories[random.randint(0, len(categories))]['name']
-            for_you_spots = await restaurants_with_category(selected_category)
+        for_you_spots = await restaurants_with_category(selected_category)
 
     return {"spots": for_you_spots, "category": selected_category, "user": uid}
 
@@ -68,7 +66,7 @@ async def get_recommendation_for_user(uid: str):
 
 # @app.get("/trigger_update")
 async def trigger_aggregated_stats_update():
-    print('TRIGGERING UPDATE')
+    print('INFO: TRIGGERING UPDATE')
     # 1. get all spots
     spots = await get_all_documents_from_collection('spots')
 
@@ -111,6 +109,17 @@ async def get_all_categories():
     
     return categories_list
 
+async def get_all_categories_by_user(user_id: str):
+    collection_ref = db.collection('reviews')
+    # get all categories
+    reviews = collection_ref.where('user.id', '==', user_id).get()
+    categories_list = []
+    for review in reviews:
+        # the categories are stored inside the review in the field 'selectedCategories'
+        review_data = review.to_dict()
+        categories_list = review_data['selectedCategories']
+
+    return categories_list
 
 async def get_all_documents_from_collection(collection_name: str):
     collection_ref = db.collection(collection_name)

@@ -15,6 +15,7 @@ scheduler = AsyncIOScheduler()
 async def lifespan(app: FastAPI):
     trigger = CronTrigger(hour='*/2', timezone=jst)
     scheduler.add_job(trigger_aggregated_stats_update, trigger)
+    scheduler.add_job(trigger_update_categories, trigger)
     scheduler.start()
     yield # here, the app turns on and starts to receive requests
     scheduler.shutdown()
@@ -64,7 +65,7 @@ async def get_recommendation_for_user(uid: str):
 # Trigger updates for aggregated stats
 # ----------------------------
 
-# @app.get("/trigger_update")
+@app.get("/trigger_update")
 async def trigger_aggregated_stats_update():
     print('INFO: TRIGGERING UPDATE')
     # 1. get all spots
@@ -80,6 +81,42 @@ async def trigger_aggregated_stats_update():
         # 4. update stats in spot document
         await update_spot_stats_firebase(avg_stats, spot_id)
 
+    return {}
+
+# ----------------------------
+# Trigger updates for calculating spot categories
+# ----------------------------
+
+@app.get("/trigger_update_categories") # Im leaving this as a get request for testing purposes
+async def trigger_update_categories():
+    print('INFO: TRIGGERING UPDATE CATEGORIES')
+    # 1. get all spots
+    spots = await get_all_documents_from_collection('spots')
+
+    print(spots['NJRaBUfiBlNk9v5hsb7D']['reviewData']['userReviews'])
+
+    spots_reviews = {}
+
+    # 2. get all spot reviews
+    for spot_id, spot in spots.items():
+        spots_reviews[spot_id] = await get_spot_reviews(spot['reviewData']['userReviews'])
+    
+    # 3. for each spot, read all reviews and sum up the categories
+    for spot_id, spot_reviews in spots_reviews.items():
+        categories = {}
+        for review in spot_reviews:
+            for category in review['selectedCategories']:
+                if category in categories:
+                    categories[category] += 1
+                else:
+                    categories[category] = 1
+
+        # 4. update the spot document with the categories
+        spot_ref = db.collection('spots').document(spot_id)
+        spot_ref.update({
+            'categories': [{"name": k, "count": v} for k, v in categories.items()]
+        })
+        
     return {}
 
 

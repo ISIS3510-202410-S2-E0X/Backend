@@ -46,7 +46,7 @@ async def get_recommendation_for_user(uid: str):
                 pass
     
     categories = await get_all_categories_by_user(uid)
-    print(user_reviews)
+    # print(user_reviews)
 
     
     if user_reviews == []:
@@ -92,8 +92,6 @@ async def trigger_update_categories():
     print('INFO: TRIGGERING UPDATE CATEGORIES')
     # 1. get all spots
     spots = await get_all_documents_from_collection('spots')
-
-    print(spots['NJRaBUfiBlNk9v5hsb7D']['reviewData']['userReviews'])
 
     spots_reviews = {}
 

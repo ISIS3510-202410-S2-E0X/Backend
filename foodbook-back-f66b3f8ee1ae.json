@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "foodbook-back",
+  "private_key_id": "f66b3f8ee1ae71fd73f3a68d10fa09ceab4b7cc0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQDCvWKhklTrIbrj\nwzUlgLaDcjdISCSItp4Kzik70WYpiXrg+IRNwVMqRdQ7bB4Ko1sgrjW9uFkqBvrF\nnV2M2rDF1Bpl0Fizelo2AMvKXcUtjNH3xurNClYc8quB7A5wkJgaFrGbRR+QMiXU\nH5aHnbHdniWB7LCu5vbZlqTE6u0cP83tkPA54WOUI4N0D7EcyXhT0FNnfG5grHIe\nl8CWAj47xkJ3IiYvFuP1zpQJQZWhrdv94GZ5JxWQYme1foQCRT/3fHNKh6Gs0zwS\nCmmL0U6yCm+UaXrWGVYYd2B2PDU1kqyHr+h+yUH8tNg/Mc6OWgxTEkKXfmVx5Hvg\nIM1W6plpAgMBAAECggEAFZPBYXCiyxjGKeVftqOP1XmqyW4A6kr9sOnN5MxbWv/a\nJyIyGqFwkw8AqILew0P9XV4gI0DRVFhIoevBSVGT45+QOza+FUjZxQEKk4YXSmg/\nfYpDSuu5xeRXf4JFyVAkIkPgcvlSOXps+Zd0aNtesVUMB9zPaNm7gTlxUUZMdmQj\nqRQ9VikAoqxYOGtGOsAEu5SAgk90nmq13CUu+FmSMm9uQGfff9PXLG6EmXvaJf4z\nJ7GhTSV54QDBohg3CpxhcOFDcxyj4u7Xxgb/LRRY2rWJZrvvAzEz4NOwPBtwKPnJ\n8fIB86j4YYtnMMUcHtzsOqbqYIGxMKGTcuyK4QnCGQKBgQD5EqqhzqMFy3ZWCGHN\nJ5jZbqdzsSB7q+c5VAuROB5kR7Tg+vdrddfckK1+0q4Vr2N5g4fK0+BNTcJG6+5q\nyWzEma1TAqinQ909Q/dLH8S8zwY7eKaFvaEU8eRYjUDCMdY3dqQXmWI3BtJ8UDR+\nSYP51IqR6eAE2ZoGykIdQO577QKBgQDIJ+GV0AqsRYxgfreCenpopxqFrd01/mM9\ncysAjDaA9BA6e1WDlCECfC3Kfcq0HF9ABT0OjDNouLSWpe0PRNE3uL2cU+zDQHsS\n0QJHFdnpXmAgJReYNp9QXKb7lAfU79G375vniol3objNsYfL+kWGnqRHzI1OqBfU\nRbph+hN77QKBgDna2yXAsN9stm0ff1A/LWL8MAtQjoILmScY3aL6zRxwB5Tm1sfw\nVJbYSGSYHXXOCqY0Jju34XczY7hDn1rQtOIp7DfG+1P3EJHlkrCxjWpqEEGKMewI\n8zzBP1BOZ0d0ehTiCxWsPEMZ45SasMbQ3sYOV62zDKUzwnJnUtomtf61AoGANmZA\ndYs5m2C7qm5GSfwn0NG576M1gDtHlaf7hAaXuaybzIlA0KYt4pMFjwdpVFJxwOCr\nm4yXXFr3Ggq2x3OYuWBIiHh23QplaNPNnqxdsYOo9JOgOgp+ekT0TWQKTOFxSmCh\nKukIO6+EnsMleVboFpJ/a9Q4g6xD7bmV0pM5QHECgYB7AttqlR+zK91b8l5jcQw0\ncv0n53ls4zgTK59eUUMAagLzgowggz+AUvRmvOAHZ4JkuhuGZVjrh6GCnEGvfx0R\nBbUymUV4VB+qeGEuWWm/lrRJnL24uyCEfbnyOcR1kwZOF5nk3QWwKxpazGqKJ0/h\nHlntnhEoeXKuNs906vnykg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-to94a@foodbook-back.iam.gserviceaccount.com",
+  "client_id": "101393074576243481815",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-to94a%40foodbook-back.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

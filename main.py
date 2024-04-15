@@ -22,7 +22,7 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-cred = credentials.Certificate("foodbook-back-firebase-adminsdk-to94a-90fe879afa.json")
+cred = credentials.Certificate("foodbook-back-f66b3f8ee1ae.json")
 firebase_admin.initialize_app(cred)
 
 db = firestore.client()
@@ -30,6 +30,7 @@ db = firestore.client()
 # ----------------------------
 # API Endpoints
 # ----------------------------
+
 
 @app.get("/recommendation/{uid}")
 async def get_recommendation_for_user(uid: str):
@@ -46,15 +47,14 @@ async def get_recommendation_for_user(uid: str):
                 pass
     
     categories = await get_all_categories_by_user(uid)
-    # print(user_reviews)
 
-    
     if user_reviews == []:
         raise HTTPException(status_code=404, detail="User has no reviews")
     else:
         selected_category = last_category_from_review(user_reviews[0], categories)
 
     for_you_spots = []
+
     while (for_you_spots == []):
         for_you_spots = await restaurants_with_category(selected_category)
 
@@ -130,19 +130,9 @@ async def get_all_reviews():
     reviews_list = []
     for review in reviews:
         reviews_list.append(review.to_dict())
-        
+    
     return reviews_list
-    
 
-async def get_all_categories():
-    collection_ref = db.collection('categories')
-    # get all categories
-    categories = collection_ref.get()
-    categories_list = []
-    for category in categories:
-        categories_list.append(category.to_dict())
-    
-    return categories_list
 
 async def get_all_categories_by_user(user_id: str):
     collection_ref = db.collection('reviews')
@@ -215,12 +205,10 @@ async def update_spot_stats(spot: list, spot_reviews: list):
         
     
 async def restaurants_with_category(selected_category: str):
-    spots_ref = db.collection('spots')
-    query = spots_ref.where('categories', 'array_contains', selected_category)
-    results = query.stream()
-
-    for_you_spots = []
-    for doc in results:
-        for_you_spots.append(doc.id)
-    
-    return for_you_spots
+    spots = await get_all_documents_from_collection('spots')
+    spots_with_category = []
+    for spot_id, spot in spots.items():
+        for category in spot['categories']:
+            if category['name'] == selected_category:
+                spots_with_category.append(spot_id)
+    return spots_with_category

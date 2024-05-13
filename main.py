@@ -5,6 +5,7 @@ from fastapi import FastAPI, HTTPException
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 import firebase_admin
+from datetime import datetime, timedelta
 from firebase_admin import credentials, firestore
 
 jst = pytz.timezone('America/Bogota')
@@ -222,8 +223,12 @@ async def restaurants_with_category(selected_category: str):
     return spots_with_category
 
 
+
 async def get_hottest_categories():
-    # Query Firestore to get all reviews
+    # Calculate the date one week ago from now
+    one_week_ago = datetime.now(pytz.utc) - timedelta(days=7)
+
+    # Query Firestore to get all reviews from the last week
     reviews_ref = db.collection('reviews')
     reviews = reviews_ref.stream()
     all_categories = set()  # To store all unique categories
@@ -231,21 +236,27 @@ async def get_hottest_categories():
     # Extract categories from each review
     for review in reviews:
         review_data = review.to_dict()
-        for category in review_data.get('selectedCategories', []):
-            all_categories.add(category)
+        # Check if the review's date is within the last week
+        if review_data.get('date') >= one_week_ago:
+            for category in review_data.get('selectedCategories', []):
+                all_categories.add(category)
 
-    # Count the frequency of each category
+    # Initialize category counts
     category_counts = {}
     for category in all_categories:
         category_counts[category] = 0
-    
+
+    # Update category counts for reviews from the last week
     reviews = reviews_ref.stream()
     for review in reviews:
         review_data = review.to_dict()
-        for category in review_data.get('selectedCategories', []):
-            category_counts[category] += 1
+        # Check if the review's date is within the last week
+        if review_data.get('date') >= one_week_ago:
+            for category in review_data.get('selectedCategories', []):
+                category_counts[category] += 1
 
     # Sort categories by count and return the top ones
     sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)[:5]  # Adjust the number as needed
 
     return sorted_categories
+
